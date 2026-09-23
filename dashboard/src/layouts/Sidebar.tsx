@@ -2,10 +2,17 @@ import { useCallback, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import type { TFunction } from "i18next";
+import { Tooltip } from "antd";
 import AvatarDropdown from "../components/AvatarDropdown";
 import AppVersionBadge from "../components/AppVersionBadge";
 import CurrentVersionBadge from "../components/CurrentVersionBadge";
-import { ArrowRightLeft, X, ChevronDown } from "lucide-react";
+import {
+  ArrowRightLeft,
+  X,
+  ChevronDown,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 import { useLayoutMode } from "../context/LayoutModeContext";
 import { useUserRole } from "../hooks/useUserRole";
 import { useCurrentUser, useSetCurrentUser } from "../hooks/useCurrentUser";
@@ -379,7 +386,7 @@ export default function Sidebar({
   const role = useUserRole();
   const user = useCurrentUser();
   const setUser = useSetCurrentUser();
-  const { hasUpdate } = useUpdateStatus();
+  const { status, hasUpdate } = useUpdateStatus();
   const { mobileEnabled } = useServerCapabilities();
   const { layoutMode, minimalPane, setMinimalPane } = useLayoutMode();
   const isMinimal = layoutMode === "minimal";
@@ -454,24 +461,27 @@ export default function Sidebar({
   const brandInner = (
     <>
       <img
-        src={isRailCollapsed ? "/pwa-192.png" : "/pwa-512.png"}
+        src="/pwa-512.png"
         alt="Octop"
         style={{
-          height: isRailCollapsed ? 32 : isMobile ? 38 : 36,
-          width: isRailCollapsed ? 32 : "auto",
-          maxWidth: isRailCollapsed ? 32 : isMobile ? 190 : 160,
+          height: isMobile ? 38 : 32,
+          width: "auto",
+          maxWidth: isMobile ? 190 : 160,
           objectFit: "contain",
           display: "block",
           flexShrink: 0,
-          borderRadius: isRailCollapsed ? 8 : undefined,
         }}
       />
-      {!isRailCollapsed && !isMobile && (
-        <>
-          <CurrentVersionBadge isMobile={isMobile} />
-          <AppVersionBadge isMobile={isMobile} />
-        </>
-      )}
+      <span
+        style={{
+          color: "var(--fn-text-primary)",
+          fontSize: 13,
+          fontWeight: 600,
+          whiteSpace: "nowrap",
+        }}
+      >
+        xOne工作台
+      </span>
     </>
   );
 
@@ -701,14 +711,16 @@ export default function Sidebar({
   }
 
   // Desktop: custom sidebar with icon-only collapsed mode.
-  // Right border is drawn by MainLayout's RailEdgeControl.
+  // The border stays on the sidebar in both states.
   return (
     <div
       style={{
         width: isRailCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
         minWidth: isRailCollapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
         background: "var(--fn-sidebar-bg)",
-        borderRight: "none",
+        borderRight:
+          "1px solid var(--fn-chat-divider, var(--fn-border-primary))",
+        boxSizing: "border-box",
         transition:
           "width 0.25s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
         overflow: "hidden",
@@ -727,11 +739,35 @@ export default function Sidebar({
           gap: 6,
           minWidth: 0,
           padding: isRailCollapsed ? "12px 0" : "14px 14px 10px",
-          justifyContent: isRailCollapsed ? "center" : "flex-start",
+          justifyContent: isRailCollapsed ? "center" : "space-between",
           flexShrink: 0,
         }}
       >
-        {brandInner}
+        {isRailCollapsed ? (
+          <Tooltip title={t("nav.openSidebar")} placement="right">
+            <button
+              type="button"
+              className={styles.sidebarExpandBtn}
+              onClick={onToggle}
+              aria-label={t("nav.openSidebar")}
+            >
+              <PanelLeftOpen size={20} strokeWidth={1.8} />
+            </button>
+          </Tooltip>
+        ) : (
+          <div className={styles.sidebarBrandIdentity}>{brandInner}</div>
+        )}
+        {!isRailCollapsed && (
+          <button
+            type="button"
+            className={styles.sidebarCollapseBtn}
+            onClick={onToggle}
+            aria-label={t("nav.collapseSidebar")}
+            title={t("nav.collapseSidebar")}
+          >
+            <PanelLeftClose size={18} strokeWidth={1.8} />
+          </button>
+        )}
       </div>
 
       <div
@@ -747,6 +783,12 @@ export default function Sidebar({
         {navScrollBody}
       </div>
 
+      {!isRailCollapsed && status?.current_version && (
+        <div className={styles.sidebarVersion}>
+          <CurrentVersionBadge />
+          <AppVersionBadge />
+        </div>
+      )}
       {userFooter}
     </div>
   );

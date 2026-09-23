@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ANTD_BRAND_TOKENS,
+  PALETTE_SWATCH,
   VALID_PALETTES,
   brandPrimary,
 } from "./themePalettes";
@@ -36,12 +37,12 @@ describe("theme palettes", () => {
     ]);
   });
 
-  it("keeps the historic Elegant Rose default brand tokens", () => {
-    expect(ANTD_BRAND_TOKENS.rose.light.colorPrimary).toBe("#E85D75");
-    expect(ANTD_BRAND_TOKENS.rose.light.colorPrimaryHover).toBe("#D14A62");
-    expect(ANTD_BRAND_TOKENS.rose.light.colorPrimaryActive).toBe("#B83A50");
-    expect(ANTD_BRAND_TOKENS.rose.dark.colorPrimary).toBe("#F08B9A");
-    expect(ANTD_BRAND_TOKENS.rose.dark.colorLink).toBe("#F08B9A");
+  it("uses the default swatch with accessible brand states", () => {
+    expect(PALETTE_SWATCH.rose).toBe("#95A0C4");
+    expect(ANTD_BRAND_TOKENS.rose.light.colorPrimary).toBe("#6B728D");
+    expect(ANTD_BRAND_TOKENS.rose.light.colorPrimaryHover).toBe("#60677F");
+    expect(ANTD_BRAND_TOKENS.rose.light.colorPrimaryActive).toBe("#565B71");
+    expect(ANTD_BRAND_TOKENS.rose.dark.colorLink).toBe("#95A0C4");
   });
 
   it.each(VALID_PALETTES.filter((palette) => palette !== "rose"))(

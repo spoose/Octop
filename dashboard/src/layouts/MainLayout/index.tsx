@@ -3,7 +3,6 @@ import { lazy, Suspense, useEffect, useState, useCallback } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import Sidebar from "../Sidebar";
 import Header from "../Header";
-import RailEdgeControl from "../../components/RailEdgeControl";
 import PageLoading from "../../components/PageLoading";
 import { ServiceRestartProvider } from "../../context/ServiceRestartContext";
 import { BackupOperationProvider } from "../../context/BackupOperationContext";
@@ -91,7 +90,7 @@ export default function MainLayout() {
   }, [collapsed, persistNavCollapsed]);
 
   /**
-   * Desktop nav rail edge:
+   * Desktop nav button:
    * - expand: open nav; if classic chat history is also closed, open both
    * - collapse: collapse nav only
    */
@@ -212,16 +211,9 @@ export default function MainLayout() {
             <Sidebar
               selectedKey={selectedKey}
               collapsed={collapsed}
-              onToggle={toggleCollapsed}
+              onToggle={isMobile ? toggleCollapsed : handleNavRailToggle}
               isMobile={isMobile}
             />
-            {!isMobile && (
-              <RailEdgeControl
-                expanded={!collapsed}
-                onToggle={handleNavRailToggle}
-                side="end"
-              />
-            )}
           </div>
 
           {isChatRoute && !isMinimalLayout && (

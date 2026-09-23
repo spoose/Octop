@@ -17,9 +17,10 @@ afterEach(() => {
 });
 
 describe("appearanceStorage", () => {
-  it("defaults to system preference and rose palette", () => {
+  it("defaults to system preference and the default palette", () => {
     expect(readStoredAppearance().preference).toBe("system");
     expect(readStoredAppearance().palette).toBe(DEFAULT_PALETTE);
+    expect(readStoredAppearance().customColor).toBe(DEFAULT_CUSTOM_COLOR);
   });
 
   it("migrates legacy plain theme string + palette key", () => {

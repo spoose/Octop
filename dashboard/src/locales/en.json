@@ -204,6 +204,7 @@
     "search": "AI Search",
     "collapseSidebar": "Collapse",
     "expandSidebar": "Expand",
+    "openSidebar": "Open sidebar",
     "language": "Language",
     "theme": "Theme",
     "memory": "Memory",
@@ -3333,7 +3334,7 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "palette": {
-      "rose": "Rose",
+      "rose": "Default color",
       "tech": "Tech",
       "indigo": "Indigo",
       "teal": "Teal",

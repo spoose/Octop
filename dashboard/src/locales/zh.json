@@ -204,6 +204,7 @@
     "search": "AI 搜索",
     "collapseSidebar": "收起",
     "expandSidebar": "展开",
+    "openSidebar": "打开侧边栏",
     "language": "语言",
     "theme": "主题",
     "memory": "记忆",
@@ -3330,7 +3331,7 @@
     "themeLight": "浅色",
     "themeDark": "深色",
     "palette": {
-      "rose": "玫瑰",
+      "rose": "默认颜色",
       "tech": "科技",
       "indigo": "靛蓝",
       "teal": "青绿",
