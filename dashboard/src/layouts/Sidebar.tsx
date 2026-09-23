@@ -629,9 +629,12 @@ export default function Sidebar({
         style={{
           position: "fixed",
           top: 0,
+          bottom: 0,
           left: 0,
-          height: "100dvh",
+          height: "auto",
           width: EXPANDED_WIDTH,
+          boxSizing: "border-box",
+          paddingLeft: "env(safe-area-inset-left, 0px)",
           background: "var(--fn-sidebar-bg)",
           borderRight: "1px solid var(--fn-sidebar-border)",
           zIndex: 100,
@@ -644,11 +647,13 @@ export default function Sidebar({
       >
         <div
           style={{
-            height: 56,
+            // Match Header: iOS PWA draws under the status bar (#664).
+            height: "calc(56px + env(safe-area-inset-top, 0px))",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "0 12px 0 16px",
+            padding: "env(safe-area-inset-top, 0px) 12px 0 16px",
+            boxSizing: "border-box",
             flexShrink: 0,
             gap: 8,
           }}
