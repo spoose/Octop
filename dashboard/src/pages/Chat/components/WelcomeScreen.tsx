@@ -101,7 +101,7 @@ export default function WelcomeScreen({
               <>
                 <span className={styles.welcomeAgentLine}>
                   <span className={styles.welcomeAgentMention}>
-                    @{agentName}
+                    {/*@{agentName}*/}
                   </span>
                 </span>
                 <span className={styles.welcomeSubtitleText}>
