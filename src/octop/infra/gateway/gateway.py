@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 from octop_gateway.channel import ChannelCredentialsError
 from octop_gateway.channels import ChannelKind
 from octop_gateway.manager import ChannelManager
-from octop_gateway.models import ChannelSubject
+from octop_gateway.models import ChannelSubject, ContentPart
 
 from octop.i18n import channel_probe_incomplete, channel_runtime_reason, tr
 from octop.infra.db.repos.channels import ChannelRow
@@ -487,6 +487,25 @@ class Gateway:
                 f"session is IM ({session.channel_type!r}) but has no channel_id bound"
             )
         return session.channel_id
+
+    async def push_session_content(
+        self,
+        session: SessionRow,
+        parts: list[ContentPart],
+        *,
+        title_source: str | None = None,
+    ) -> None:
+        """Deliver proactive attachments and prepared text to a resolved session."""
+        manager = self._require_channel_manager()
+        try:
+            await manager.push_content(
+                self._channel_id_for_session(session),
+                self._resolve_push_subject(session),
+                parts,
+            )
+        finally:
+            if ThreadRegistry.is_virtual_channel(session.channel_type):
+                self._bump_virtual_session(session, title_source or "")
 
     def _resolve_push_subject(self, session: SessionRow) -> ChannelSubject:
         """Build ChannelSubject from session; IM routing enrichment is in octop-gateway."""

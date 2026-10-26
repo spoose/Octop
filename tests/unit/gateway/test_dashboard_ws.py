@@ -9,7 +9,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from octop_gateway.models import ChannelSubject, ImageContent, InboundMessage, TextContent
+from octop_gateway.models import (
+    ChannelSubject,
+    FileContent,
+    ImageContent,
+    InboundMessage,
+    TextContent,
+)
 
 from octop.infra.gateway.media.tool_media import enrich_media_block_preview
 from octop.infra.gateway.ws import WS_CHANNEL_ID, WebSocketChannel, WebSocketHub
@@ -46,6 +52,37 @@ def _stream_frames(frames: list[dict[str, Any]]) -> list[dict[str, Any]]:
             continue
         out.append(frame)
     return out
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("reply", ["今日公告无变更", ""])
+@pytest.mark.parametrize("route", ["thread_id", "ws_connection_id"])
+async def test_proactive_report_sends_attachment_and_finishes(reply: str, route: str) -> None:
+    hub = WebSocketHub()
+    frames: list[dict[str, Any]] = []
+
+    async def capture(frame: dict[str, Any]) -> None:
+        frames.append(frame)
+
+    hub.register("c1", capture)
+    hub.subscribe("thr-report", "c1")
+    channel = WebSocketChannel(object(), hub=hub)  # type: ignore[arg-type]
+    subject = ChannelSubject(
+        subject_id="1", metadata={route: "thr-report" if route == "thread_id" else "c1"}
+    )
+    data = base64.b64encode(b"<html>report</html>").decode()
+
+    parts = [FileContent(filename="report.html", data=data, mime_type="text/html")]
+    await channel.push_message(subject, [*parts, TextContent(text=reply)] if reply else parts)
+
+    assert [frame["type"] for frame in frames] == (
+        ["attachment", "token", "done"] if reply else ["attachment", "done"]
+    )
+    assert frames[0]["filename"] == "report.html"
+    assert frames[0]["mime_type"] == "text/html"
+    assert frames[0]["data"] == data
+    if reply:
+        assert frames[1]["content"] == reply
 
 
 @pytest.mark.asyncio

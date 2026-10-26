@@ -7,10 +7,16 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from langchain_core.messages import AIMessage, HumanMessage
+from octop_gateway.models import ContentPart, TextContent
 
 from octop.i18n import tr
 from octop.infra.cron.task_type import CronTaskType, normalize_cron_task_type
+from octop.infra.gateway.media.tool_media import (
+    dedup_tool_result_messages,
+    media_events_from_tool_result,
+)
 from octop.infra.gateway.process import build_harness_request
+from octop.infra.gateway.process.agent_resolve import harness_workspace_for_agent
 from octop.infra.gateway.process.message_keys import COMPOSER_CTX_KEY, build_composer_context
 from octop.infra.gateway.process.usage_record import UsageTracker, record_turn_usage
 from octop.infra.gateway.threads import ThreadRegistry
@@ -140,9 +146,11 @@ class CronDeliveryService:
         tracker = TurnHistoryTracker.from_request(request)
         usage = UsageTracker()
         parts: list[str] = []
+        media: list[ContentPart] = []
         interaction_required = False
         saw_tool_call = False
         emitted_tool_error_ids: set[str] = set()
+        emitted_media_ids: set[str] = set()
         try:
             from octop.infra.connectors.gateway.adapters.agently_cli import write_scope
 
@@ -161,6 +169,16 @@ class CronDeliveryService:
                             seen=emitted_tool_error_ids,
                             live=saw_tool_call,
                         )
+                        chunk_for_media = dedup_tool_result_messages(chunk, emitted_media_ids)
+                        if saw_tool_call and chunk_for_media is not None:
+                            workspace = harness_workspace_for_agent(
+                                self._agent_manager, command.agent_id
+                            )
+                            if workspace is not None:
+                                async for event in media_events_from_tool_result(
+                                    chunk_for_media, workspace=workspace
+                                ):
+                                    media.extend(event.content)
                     if kind in ("token", "delta"):
                         parts.append(str(chunk.get("content") or chunk.get("text") or ""))
                     elif kind == "hitl_required":
@@ -168,7 +186,7 @@ class CronDeliveryService:
             if interaction_required:
                 raise RuntimeError("cron agent run requires user interaction")
             outbound = strip_thinking("".join(parts)).strip()
-            if not outbound:
+            if not outbound and not media:
                 raise RuntimeError("cron agent run produced no visible response")
         finally:
             # ``fresh_thread`` already put an empty thread on the session, so a run
@@ -184,11 +202,16 @@ class CronDeliveryService:
                 usage=usage.usage,
                 source="cron",
             )
-        await self._gateway.push_session_text(
-            session,
-            outbound,
-            title_source=command.prompt,
-        )
+        if media:
+            if outbound:
+                media.append(TextContent(text=outbound))
+            await self._gateway.push_session_content(session, media, title_source=command.prompt)
+        else:
+            await self._gateway.push_session_text(
+                session,
+                outbound,
+                title_source=command.prompt,
+            )
         await self._notify_best_effort(session, command.agent_id, outbound)
 
     async def _build_agent_request(

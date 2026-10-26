@@ -7,7 +7,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from octop_gateway.models import ChannelSubject
+from octop_gateway.models import ChannelSubject, FileContent
 
 from octop.infra.db.migrate import run_migrations
 from octop.infra.db.pool import SqlitePool
@@ -36,6 +36,7 @@ def gateway(tmp_path: Path) -> Gateway:
     gw._channel_manager = MagicMock()
     gw._channel_manager.channel_ids = ["ch-1"]
     gw._channel_manager.push_text = AsyncMock()
+    gw._channel_manager.push_content = AsyncMock()
     gw._channel_manager.get_channel = MagicMock(return_value=None)
 
     async def run_in_session(_channel_id, _session_key, operation):
@@ -152,6 +153,20 @@ async def test_push_text_delegates_to_channel_manager(gateway: Gateway) -> None:
     await gateway.push_text("feishu", "ch-1", subject, "ping")
 
     gateway._channel_manager.push_text.assert_awaited_once_with("ch-1", subject, "ping")
+
+
+@pytest.mark.asyncio
+async def test_push_session_content_preserves_weixin_subject(gateway: Gateway) -> None:
+    subject = ChannelSubject(
+        subject_id="wechat-user", chat_type="dm", metadata={"account_id": "wechat-account"}
+    )
+    session = MagicMock(channel_type="weixin", channel_id="ch-1")
+    session.to_channel_subject.return_value = subject
+    parts = [FileContent(filename="report.html", data="aHRtbA==", mime_type="text/html")]
+
+    await gateway.push_session_content(session, parts)
+
+    gateway._channel_manager.push_content.assert_awaited_once_with("ch-1", subject, parts)
 
 
 @pytest.mark.asyncio
@@ -274,6 +289,24 @@ async def test_push_text_from_session_dashboard_injects_thread_id(gateway: Gatew
     subject = args.args[1]
     assert subject.metadata["thread_id"] == "thr_dash"
     assert args.args[2] == "记得喝水"
+
+
+@pytest.mark.asyncio
+async def test_push_session_content_dashboard_routes_to_thread(gateway: Gateway) -> None:
+    sk = _insert_dashboard_session(gateway)
+    session = gateway.require_session("a1", sk)
+    parts = [FileContent(filename="report.html", data="aHRtbA==", mime_type="text/html")]
+
+    await gateway.push_session_content(session, parts, title_source="审计日报")
+
+    args = gateway._channel_manager.push_content.await_args
+    assert args.args[0] == WS_CHANNEL_ID
+    assert args.args[1].metadata["thread_id"] == "thr_dash"
+    assert args.args[2] == parts
+    row = gateway.thread_registry.get_session(sk)
+    assert row is not None
+    assert row.unread_count == 1
+    assert gateway.thread_registry.get_thread("thr_dash").title == "审计日报"
 
 
 @pytest.mark.asyncio

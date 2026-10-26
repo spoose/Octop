@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import base64
 from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
-from langchain_core.messages import AIMessage, HumanMessage
+from deepagents.backends.local_shell import LocalShellBackend
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
+from octop_gateway.models import FileContent, TextContent
+from octop_harness.backends.workspace import BackendWorkspace
 
 from octop.infra.cron.delivery import CronDeliveryCommand, CronDeliveryService
 from octop.infra.db.migrate import run_migrations
@@ -257,6 +261,72 @@ async def test_agent_empty_reply_does_not_push() -> None:
     projected = repos.thread_message_repo.append_if_ready.call_args.args[1]
     assert projected[0].role == "human"
     assert "run" in projected[0].message_json
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("reply", ["今日公告无变更", ""])
+@pytest.mark.parametrize("push_fails", [False, True])
+async def test_agent_delivers_report_once_and_propagates_send_failure(
+    tmp_path: Path, reply: str, push_fails: bool
+) -> None:
+    session = _session(channel_type="weixin")
+    workspace = BackendWorkspace(
+        LocalShellBackend(root_dir=str(tmp_path), virtual_mode=False), tmp_path
+    )
+    report = "<html>今日公告无变更</html>"
+    await workspace.awrite_text("report.html", report)
+    block = {
+        "type": "file",
+        "source": {"type": "url", "url": (tmp_path / "report.html").as_uri()},
+        "filename": "report.html",
+    }
+
+    def tool_result(name: str, call_id: str) -> dict[str, Any]:
+        return {
+            "type": "tool_result",
+            "messages": [ToolMessage(content=[block], name=name, tool_call_id=call_id)],
+        }
+
+    async def stream(_aid: str, _request: dict):
+        yield tool_result("send_file_to_user", "historical")
+        yield {"type": "tool_call_chunk"}
+        yield tool_result("send_file_to_user", "historical")
+        yield tool_result("write_file", "write")
+        yield tool_result("send_file_to_user", "send")
+        yield tool_result("send_file_to_user", "send")
+        yield {"type": "token", "content": reply}
+
+    agent_manager = MagicMock()
+    agent_manager.stream = stream
+    agent_manager.get_agent.return_value.workspace = workspace
+    agent_manager.get_row.return_value = None
+    agent_manager.merge_turn_mcp_servers.return_value = None
+    gateway = MagicMock()
+    gateway.run_in_session = _run_locked
+    gateway.require_session.return_value = session
+    gateway.push_session_content = AsyncMock(
+        side_effect=RuntimeError("file send failed") if push_fails else None
+    )
+    gateway.push_session_text = AsyncMock()
+    service = CronDeliveryService(gateway=gateway, agent_manager=agent_manager, repos=MagicMock())
+    if push_fails:
+        with pytest.raises(RuntimeError, match="file send failed"):
+            await service.deliver(_command(task_type="agent"))
+    else:
+        await service.deliver(_command(task_type="agent"))
+
+    gateway.push_session_text.assert_not_awaited()
+    gateway.push_session_content.assert_awaited_once()
+    args = gateway.push_session_content.await_args
+    assert args.args[0] is session
+    parts = args.args[1]
+    assert len(parts) == (2 if reply else 1)
+    assert isinstance(parts[0], FileContent)
+    assert parts[0].filename == "report.html"
+    assert parts[0].mime_type == "text/html"
+    assert base64.b64decode(parts[0].data) == report.encode()
+    if reply:
+        assert parts[1] == TextContent(text=reply)
 
 
 @pytest.mark.asyncio
