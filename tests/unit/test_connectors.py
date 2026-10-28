@@ -441,6 +441,7 @@ def test_gateway_weknora_tools_and_search(monkeypatch: pytest.MonkeyPatch):
     )
     assert [tool["name"] for tool in listed["result"]["tools"]] == [
         "list_knowledge_bases",
+        "find_documents",
         "search",
         "read_document",
     ]

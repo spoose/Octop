@@ -20,9 +20,38 @@ TOOLS: list[dict[str, Any]] = [
         "inputSchema": {"type": "object", "properties": {}},
     },
     {
+        "name": "find_documents",
+        "description": (
+            "Find WeKnora documents by title or filename keyword in one knowledge base. "
+            "Use this before passage search when looking for a named document or an overview "
+            "(e.g. company overview). Use a short title keyword such as '概况' or 'overview', "
+            "not a full question. "
+            "Read a matching document with read_document using its knowledge_id."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "keyword": {"type": "string", "description": "Title or filename keyword"},
+                "knowledge_base_id": {
+                    "type": "string",
+                    "description": "Knowledge-base ID from list_knowledge_bases",
+                },
+                "page": {"type": "integer", "minimum": 1, "description": "Page, default 1"},
+                "page_size": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50,
+                    "description": "Documents per page, default 10",
+                },
+            },
+            "required": ["keyword", "knowledge_base_id"],
+        },
+    },
+    {
         "name": "search",
         "description": (
             "Search WeKnora knowledge bases and return ranked source passages. "
+            "For a named document or overview, try find_documents first. "
             "Use the returned knowledge_id with read_document for surrounding context."
         ),
         "inputSchema": {
@@ -169,6 +198,42 @@ def _list_knowledge_bases(creds: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _find_documents(creds: dict[str, Any], args: dict[str, Any]) -> dict[str, Any]:
+    keyword = str(args.get("keyword") or "").strip()
+    if not keyword:
+        raise ValueError("keyword is required")
+    kb_id = str(args.get("knowledge_base_id") or "").strip()
+    if not kb_id:
+        raise ValueError("knowledge_base_id is required")
+    page = max(1, int(args.get("page") or 1))
+    page_size = max(1, min(int(args.get("page_size") or 10), 50))
+    payload = _request(
+        creds,
+        "GET",
+        f"/knowledge-bases/{quote(kb_id, safe='')}/knowledge",
+        params={"keyword": keyword, "page": page, "page_size": page_size},
+    )
+    return {
+        "keyword": keyword,
+        "knowledge_base_id": kb_id,
+        "page": page,
+        "page_size": page_size,
+        "total": payload.get("total", 0),
+        "documents": [
+            {
+                "knowledge_id": item.get("id"),
+                "title": item.get("title") or item.get("file_name"),
+                "filename": item.get("file_name"),
+                "description": str(item.get("description") or "")[:_MAX_CHUNK_CHARS],
+                "folder_path": item.get("folder_path"),
+                "parse_status": item.get("parse_status"),
+                "enable_status": item.get("enable_status"),
+            }
+            for item in _data_list(payload)
+        ],
+    }
+
+
 def _search(creds: dict[str, Any], args: dict[str, Any]) -> dict[str, Any]:
     query = str(args.get("query") or "").strip()
     if not query:
@@ -226,6 +291,8 @@ def _read_document(creds: dict[str, Any], args: dict[str, Any]) -> dict[str, Any
 def call_tool(creds: dict[str, Any], name: str, args: dict[str, Any]) -> str:
     if name == "list_knowledge_bases":
         result = _list_knowledge_bases(creds)
+    elif name == "find_documents":
+        result = _find_documents(creds, args)
     elif name == "search":
         result = _search(creds, args)
     elif name == "read_document":

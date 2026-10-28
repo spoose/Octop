@@ -73,6 +73,21 @@ are updating `catalog.json` in the same change.
 | `gateway` | An in-process Python adapter; the harness config is a name-only placeholder. | 进程内 Python 适配器；Harness 配置只占位。 |
 | `internal` | Octop hosts HTTP MCP at `/api/internal/mcp`; the harness loads it over HTTP. | Octop 在 `/api/internal/mcp` 托管 HTTP MCP，Harness 经 HTTP 加载。 |
 
+## WeKnora document lookup / WeKnora 文档定位
+
+Use `find_documents(keyword, knowledge_base_id)` to locate documents by title or
+filename before searching their passages. Get the knowledge-base ID from
+`list_knowledge_bases`, then pass a matching `knowledge_id` to `read_document`.
+For example, use a short keyword such as `概况` for a company overview. Lookup is
+limited to one knowledge base; no matches do not trigger a broader search.
+`page` defaults to 1 and `page_size` to 10 (maximum 50).
+
+查找公司概况等有明确标题的资料时，先调用
+`find_documents(keyword="概况", knowledge_base_id="…")`，再把返回的
+`knowledge_id` 交给 `read_document`。知识库 ID 可通过 `list_knowledge_bases`
+获取。此工具只按标题或文件名查询指定库，不读取正文，也不会在无结果时自动扩大范围。
+支持分页：`page` 默认 1，`page_size` 默认 10、最大 50。
+
 ## Catalog JSON / 目录 JSON
 
 Each `connectors[]` object is a `ConnectorCatalogEntry`. User-facing strings are
