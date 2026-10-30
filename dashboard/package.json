@@ -17,7 +17,10 @@
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
     "preview:prod": "vite preview --mode production",
-    "preview:test": "vite preview --mode test"
+    "preview:test": "vite preview --mode test",
+    "dev:micro": "vite --config vite.micro.config.ts",
+    "build:micro": "tsc -b && vite build --config vite.micro.config.ts",
+    "preview:micro": "vite preview --config vite.micro.config.ts"
   },
   "dependencies": {
     "@aiden0z/pptx-renderer": "^1.2.4",
@@ -81,6 +84,7 @@
     "typescript-eslint": "^8.30.1",
     "vite": "^6.3.5",
     "vite-plugin-pwa": "^0.21.2",
-    "vitest": "^3.2.6"
+    "vitest": "^3.2.6",
+    "@qiankunjs/bundler-plugin": "0.0.1-rc.2"
   }
 }

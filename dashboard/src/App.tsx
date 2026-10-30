@@ -10,7 +10,7 @@ import {
   DesktopChromeProvider,
   useDesktopChrome,
 } from "./hooks/useDesktopChrome";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, MemoryRouter, Routes, Route } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import MainLayout from "./layouts/MainLayout";
 import LoginPage from "./pages/Login";
@@ -33,6 +33,8 @@ import "./styles/theme-vars.css";
 import "./styles/layout.css";
 import "./styles/form-override.css";
 import "./styles/spin-override.css";
+
+import { getAppDocumentRoot, isEmbeddedApp } from "./utils/appDocument";
 
 const GlobalStyle = createGlobalStyle`
 * {
@@ -60,7 +62,7 @@ function ThemedApp() {
 
   // Set document title based on current language
   useEffect(() => {
-    document.title = t("app.pageTitle");
+    if (!isEmbeddedApp()) document.title = t("app.pageTitle");
   }, [t]);
 
   const themeConfig = {
@@ -123,6 +125,7 @@ function ThemedApp() {
     <ConfigProvider
       theme={themeConfig}
       prefixCls="octop"
+      getPopupContainer={isEmbeddedApp() ? getAppDocumentRoot : undefined}
       locale={antdLocale}
       spin={{ indicator: <OctopSpinner /> }}
     >
@@ -157,19 +160,26 @@ function ThemedApp() {
   );
 }
 
-function App() {
-  return (
-    // `useTransitions` off: with router transitions on, React keeps the old
-    // page mounted while a lazy route chunk downloads and never renders the
-    // Suspense fallback, so a nav click looks like it did nothing.
-    <BrowserRouter useTransitions={false}>
-      <GlobalErrorBoundary>
-        <GlobalStyle />
-        <ThemeProvider>
-          <ThemedApp />
-        </ThemeProvider>
-      </GlobalErrorBoundary>
-    </BrowserRouter>
+function App({
+  embedded = false,
+  initialPath = "/",
+}: {
+  embedded?: boolean;
+  initialPath?: string;
+}) {
+  const content = (
+    <GlobalErrorBoundary>
+      <GlobalStyle />
+      <ThemeProvider>
+        <ThemedApp />
+      </ThemeProvider>
+    </GlobalErrorBoundary>
+  );
+  return embedded ? (
+    <MemoryRouter initialEntries={[initialPath]}>{content}</MemoryRouter>
+  ) : (
+    // Keep navigation feedback visible while standalone lazy routes load.
+    <BrowserRouter useTransitions={false}>{content}</BrowserRouter>
   );
 }
 

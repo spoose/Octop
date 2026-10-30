@@ -1,3 +1,4 @@
+import { getAppDocumentRoot } from "./appDocument";
 export type UiLocale = "zh" | "en";
 
 export const UI_LOCALE_STORAGE_KEY = "octop:ui-locale";
@@ -54,7 +55,7 @@ export function resolveInitialLocale(): UiLocale {
 
 export function syncDocumentLang(locale: UiLocale): void {
   if (typeof document === "undefined") return;
-  document.documentElement.lang = locale === "zh" ? "zh-CN" : "en";
+  getAppDocumentRoot().lang = locale === "zh" ? "zh-CN" : "en";
 }
 
 /** BCP-47 tag for STT / SpeechRecognition from dashboard UI locale. */

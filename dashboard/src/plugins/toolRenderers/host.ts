@@ -1,3 +1,4 @@
+import { getAppDocumentRoot } from "../../utils/appDocument";
 import { request } from "../../api/request";
 import * as chatStore from "../../pages/Chat/hooks/chatStore";
 import i18n from "../../i18n";
@@ -36,9 +37,9 @@ export function setPluginUiToolContext(
 
 function readTheme(): "light" | "dark" {
   if (typeof document === "undefined") return "light";
-  const attr = document.documentElement.getAttribute("data-theme");
+  const attr = getAppDocumentRoot().getAttribute("data-theme");
   if (attr === "dark") return "dark";
-  if (document.documentElement.classList.contains("dark")) return "dark";
+  if (getAppDocumentRoot().classList.contains("dark")) return "dark";
   return "light";
 }
 

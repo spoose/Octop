@@ -117,6 +117,15 @@ def build_app(server: OctopServer) -> FastAPI:
     app.state.octop_server = server
     _install_exception_handlers(app)
 
+    from octop.api.middleware.bridge_proxy import install as install_bridge_proxy
+
+    # Bridge proxy must sit inside JWT auth so ``request.state.octop_user`` is set
+    # (Starlette runs the last-added middleware first).
+    install_bridge_proxy(app, server)
+    install_jwt_auth(app, server)
+    install_setup_lockdown(app, server)
+
+    # CORS must wrap auth/setup responses and handle preflight before their gates.
     if cfg and cfg.cors_origins:
         from octop.api.deps import ACCESS_TOKEN_RESPONSE_HEADER
 
@@ -128,14 +137,6 @@ def build_app(server: OctopServer) -> FastAPI:
             allow_headers=["*"],
             expose_headers=[ACCESS_TOKEN_RESPONSE_HEADER],
         )
-
-    from octop.api.middleware.bridge_proxy import install as install_bridge_proxy
-
-    # Bridge proxy must sit inside JWT auth so ``request.state.octop_user`` is set
-    # (Starlette runs the last-added middleware first).
-    install_bridge_proxy(app, server)
-    install_jwt_auth(app, server)
-    install_setup_lockdown(app, server)
 
     if server.app_runtime is not None and server.app_runtime.bridge_manager is not None:
         from octop.api.bridge_peer import prepare_peer_dashboard_turn

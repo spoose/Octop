@@ -1,3 +1,4 @@
+import { isEmbeddedApp } from "../utils/appDocument";
 import { useEffect } from "react";
 import {
   isPwaDisplay,
@@ -14,6 +15,7 @@ import {
  */
 export function useKeyboardOffset() {
   useEffect(() => {
+    if (isEmbeddedApp()) return;
     if (!isPwaDisplay()) return;
     const vv = window.visualViewport;
     if (!vv) return;

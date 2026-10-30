@@ -1,3 +1,4 @@
+import { getAppDocumentRoot, isEmbeddedApp } from "../utils/appDocument";
 import {
   createContext,
   useContext,
@@ -73,8 +74,8 @@ export function isDarkMode(mode: ThemeMode): boolean {
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [preference, setPreferenceState] = useState<ThemePreference>(() => {
     const stored = loadAppearanceOnBoot();
-    document.documentElement.setAttribute("data-palette", stored.palette);
-    document.documentElement.setAttribute(
+    getAppDocumentRoot().setAttribute("data-palette", stored.palette);
+    getAppDocumentRoot().setAttribute(
       "data-theme",
       resolveMode(stored.preference),
     );
@@ -112,7 +113,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Persist preference + palette together (mode is derived, not stored)
   useEffect(() => {
     writeStoredAppearance({ preference, palette, customColor });
-    document.documentElement.setAttribute("data-palette", palette);
+    getAppDocumentRoot().setAttribute("data-palette", palette);
   }, [preference, palette, customColor]);
 
   // Inject the runtime-derived CSS variables for the custom palette. The
@@ -129,15 +130,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       })();
     const normalized = normalizeHexColor(customColor);
     if (normalized) {
-      el.textContent = `${customPaletteCssVars(
+      const css = `${customPaletteCssVars(
         normalized,
         mode === "dark",
       )}\n${customPaletteCssVars(normalized, mode !== "dark")}`;
+      el.textContent = isEmbeddedApp()
+        ? css.replace(/\bhtml\b/g, "#octop-micro-root")
+        : css;
     }
   }, [palette, customColor, mode]);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", mode);
+    getAppDocumentRoot().setAttribute("data-theme", mode);
+
+    if (isEmbeddedApp()) return;
 
     // Keep the PWA theme-color meta tag in sync with the resolved mode so
     // the browser chrome (address bar, status bar, PWA title bar) matches.

@@ -1,3 +1,4 @@
+import { getAppAssetUrl } from "../utils/appDocument";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -511,7 +512,7 @@ export default function Sidebar({
   const brandInner = (
     <>
       <img
-        src="/pwa-512.png"
+        src={getAppAssetUrl("/pwa-512.png")}
         alt="Octop"
         style={{
           height: isMobile ? 38 : 32,

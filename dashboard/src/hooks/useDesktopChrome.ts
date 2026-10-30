@@ -1,3 +1,4 @@
+import { isEmbeddedApp } from "../utils/appDocument";
 import {
   createContext,
   createElement,
@@ -21,6 +22,7 @@ export function useDesktopChrome(): DesktopChromeStyle | null {
   const [style, setStyle] = useState<DesktopChromeStyle | null>(null);
 
   useEffect(() => {
+    if (isEmbeddedApp()) return;
     let cancelled = false;
     const tryApply = () => {
       if (cancelled || !isDesktopShell()) return false;

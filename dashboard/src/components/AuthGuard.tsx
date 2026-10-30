@@ -130,7 +130,7 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     return (
       <div
         style={{
-          height: "100dvh",
+          height: "var(--octop-viewport-height, 100dvh)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

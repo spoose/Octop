@@ -1,3 +1,4 @@
+import { getAppAssetUrl } from "../utils/appDocument";
 import { Layout } from "antd";
 import { Menu as MenuIcon } from "lucide-react";
 import PwaInstallPrompt from "../components/PwaInstallPrompt";
@@ -72,7 +73,7 @@ export default function Header({ onToggle, isMobile }: HeaderProps) {
           </button>
         )}
         <img
-          src="/pwa-512.png"
+          src={getAppAssetUrl("/pwa-512.png")}
           alt="octop"
           style={{
             height: 36,

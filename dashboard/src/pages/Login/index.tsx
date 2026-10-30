@@ -240,7 +240,7 @@ export default function LoginPage() {
   return (
     <div
       style={{
-        minHeight: "100dvh",
+        minHeight: "var(--octop-viewport-height, 100dvh)",
         boxSizing: "border-box",
         display: "flex",
         alignItems: "center",
@@ -268,7 +268,10 @@ export default function LoginPage() {
         }}
       >
         <img
-          src="/pwa-512.png"
+          src={
+            new URL(`${import.meta.env.BASE_URL}pwa-512.png`, import.meta.url)
+              .href
+          }
           alt="Octop"
           style={{
             height: 64,

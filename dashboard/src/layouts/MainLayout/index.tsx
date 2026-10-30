@@ -1,3 +1,4 @@
+import { getAppDocumentRoot, isEmbeddedApp } from "../../utils/appDocument";
 import { Layout } from "antd";
 import { lazy, Suspense, useEffect, useState, useCallback } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
@@ -169,9 +170,9 @@ export default function MainLayout() {
   const isChatRoute = isChatPath(currentPath);
 
   useEffect(() => {
-    document.documentElement.classList.toggle("octop-chat-open", isChatRoute);
+    getAppDocumentRoot().classList.toggle("octop-chat-open", isChatRoute);
     return () => {
-      document.documentElement.classList.remove("octop-chat-open");
+      getAppDocumentRoot().classList.remove("octop-chat-open");
     };
   }, [isChatRoute]);
 
@@ -290,8 +291,8 @@ export default function MainLayout() {
                   minHeight: 0,
                 }}
               >
-                <PwaUpdatePrompt />
-                <PwaAutoPrompt />
+                {!isEmbeddedApp() && <PwaUpdatePrompt />}
+                {!isEmbeddedApp() && <PwaAutoPrompt />}
 
                 {workbenchMounted && (
                   <div

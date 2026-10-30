@@ -1,3 +1,4 @@
+import { getAppAssetUrl } from "../../utils/appDocument";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Segmented, Steps, Typography } from "antd";
@@ -255,7 +256,7 @@ export default function SetupPage() {
           <div className={styles.wizardHeaderTop}>
             <div className={styles.wizardHeaderBrand}>
               <img
-                src="/pwa-512.png"
+                src={getAppAssetUrl("/pwa-512.png")}
                 alt="Octop"
                 className={styles.wizardHeaderLogo}
               />

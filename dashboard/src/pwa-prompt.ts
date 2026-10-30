@@ -1,3 +1,5 @@
+import { isEmbeddedApp } from "./utils/appDocument";
+
 /**
  * Capture beforeinstallprompt synchronously at module load time.
  *
@@ -64,7 +66,7 @@ function _refreshSwReady(): void {
 }
 
 // Capture the event synchronously as early as possible.
-if (typeof window !== "undefined") {
+if (typeof window !== "undefined" && !isEmbeddedApp()) {
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     _deferredPrompt = e as BeforeInstallPromptEvent;

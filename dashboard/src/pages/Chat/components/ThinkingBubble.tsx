@@ -1,3 +1,4 @@
+import { getAppAssetUrl } from "../../../utils/appDocument";
 import { useTranslation } from "react-i18next";
 import { useElapsedSince } from "../../../hooks/useElapsedSeconds";
 import styles from "../index.module.less";
@@ -12,7 +13,9 @@ export default function ThinkingBubble({
   startedAt,
 }: ThinkingBubbleProps) {
   const { t } = useTranslation();
-  const typingSrc = `${import.meta.env.BASE_URL}octop-mascot-type.webp`;
+  const typingSrc = getAppAssetUrl(
+    `${import.meta.env.BASE_URL}octop-mascot-type.webp`,
+  );
   const elapsed = useElapsedSince(startedAt);
 
   return (
