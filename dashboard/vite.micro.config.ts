@@ -1,7 +1,12 @@
 import path from "node:path";
 import react from "@vitejs/plugin-react";
 import { qiankun } from "@qiankunjs/bundler-plugin/vite";
-import { defineConfig, loadEnv, type UserConfig } from "vite";
+import {
+  defaultAllowedOrigins,
+  defineConfig,
+  loadEnv,
+  type UserConfig,
+} from "vite";
 import standaloneConfig from "./vite.config";
 
 export default defineConfig(async (configEnv): Promise<UserConfig> => {
@@ -58,6 +63,9 @@ export default defineConfig(async (configEnv): Promise<UserConfig> => {
       },
     },
     server: { ...config.server, port, strictPort: true },
+    preview: {
+      cors: { origin: [defaultAllowedOrigins, "http://zh-mac.local:8010"] },
+    },
     build: {
       ...config.build,
       outDir: path.resolve(__dirname, "dist/micro"),

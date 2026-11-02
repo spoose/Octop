@@ -27,6 +27,7 @@ import studentPortrait from "../../../assets/avatars/student.png";
 import supportPortrait from "../../../assets/avatars/support.png";
 import teacherPortrait from "../../../assets/avatars/teacher.png";
 import { useAuthImageSrc } from "../../../hooks/useAuthImageSrc";
+import { getAppAssetUrl } from "../../../utils/appDocument";
 import { validateAvatarFile } from "../../Experts/components/ExpertAvatarPicker";
 import styles from "./index.module.less";
 
@@ -236,7 +237,7 @@ export function ProfileAvatar({
   const { src, loadState } = useAuthImageSrc(trimmed);
   const photo = Boolean(trimmed) && loadState === "ready" && Boolean(src);
   const preset = resolveAvatarPreset(kind, icon ?? defaultIcon);
-  const portrait = !photo && Boolean(preset.src);
+  const portrait = !photo && preset.src;
   const tinted = !photo && !portrait && kind !== "role";
   const style: CSSProperties | undefined = tinted
     ? { background: preset.bg, color: preset.fg }
@@ -252,7 +253,11 @@ export function ProfileAvatar({
       {photo ? (
         <img src={src} alt="" />
       ) : portrait ? (
-        <img src={preset.src} alt="" className={styles.presetPortraitImg} />
+        <img
+          src={getAppAssetUrl(portrait)}
+          alt=""
+          className={styles.presetPortraitImg}
+        />
       ) : PresetIcon ? (
         <PresetIcon />
       ) : null}
@@ -383,7 +388,7 @@ export function ProfileAvatarPicker({
           const label =
             index === 0 ? t("adminUsers.avatarDefault") : t(preset.labelKey);
           const plain = kind === "role";
-          const portrait = Boolean(preset.src);
+          const portrait = preset.src;
           const PresetIcon = preset.Icon;
           return (
             <button
@@ -414,7 +419,7 @@ export function ProfileAvatarPicker({
               }}
             >
               {portrait ? (
-                <img src={preset.src} alt="" />
+                <img src={getAppAssetUrl(portrait)} alt="" />
               ) : PresetIcon ? (
                 <PresetIcon size={plain ? 22 : 18} />
               ) : null}

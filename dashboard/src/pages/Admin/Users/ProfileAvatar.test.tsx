@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ProfileAvatar, ProfileAvatarPicker } from "./ProfileAvatar";
 
@@ -17,7 +17,40 @@ vi.mock("../../../hooks/useAuthImageSrc", () => ({
   }),
 }));
 
+afterEach(() => {
+  delete window.__POWERED_BY_QIANKUN__;
+});
+
 describe("ProfileAvatar", () => {
+  it("resolves preset portraits from the embedded app in both displays", () => {
+    const view = render(
+      <>
+        <ProfileAvatar icon="doctor" />
+        <ProfileAvatarPicker icon="doctor" onPick={vi.fn()} />
+      </>,
+    );
+    const standalone = Array.from(
+      view.container.querySelectorAll("img"),
+      (img) => img.getAttribute("src"),
+    );
+    expect(standalone.length).toBeGreaterThan(1);
+    expect(standalone.every((src) => src?.startsWith("/"))).toBe(true);
+
+    window.__POWERED_BY_QIANKUN__ = true;
+    view.rerender(
+      <>
+        <ProfileAvatar icon="doctor" />
+        <ProfileAvatarPicker icon="doctor" onPick={vi.fn()} />
+      </>,
+    );
+    const embedded = Array.from(view.container.querySelectorAll("img"), (img) =>
+      img.getAttribute("src"),
+    );
+    expect(embedded).toHaveLength(standalone.length);
+    embedded.forEach((src, index) => {
+      expect(new URL(src!).pathname).toBe(standalone[index]);
+    });
+  });
   it("keeps the Lucide default when no icon is chosen", () => {
     const { container, rerender } = render(<ProfileAvatar />);
     expect(container.querySelector("svg")).toBeTruthy();
