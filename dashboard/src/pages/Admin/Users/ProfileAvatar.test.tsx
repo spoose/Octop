@@ -87,6 +87,23 @@ describe("ProfileAvatar", () => {
 });
 
 describe("ProfileAvatarPicker", () => {
+  it("offers the seven new samples and saves the selected id", async () => {
+    const onSelectIcon = vi.fn();
+    render(
+      <ProfileAvatarPicker onPick={vi.fn()} onSelectIcon={onSelectIcon} />,
+    );
+    for (let i = 1; i <= 7; i++) {
+      const button = screen.getByRole("button", {
+        name: `adminUsers.avatarSample${i}`,
+      });
+      expect(button.querySelector("img")).toBeTruthy();
+    }
+    await userEvent.click(
+      screen.getByRole("button", { name: "adminUsers.avatarSample1" }),
+    );
+    expect(onSelectIcon).toHaveBeenCalledWith("sample-1793347196559");
+  });
+
   it("selecting the default sample saves a null icon", async () => {
     const onSelectIcon = vi.fn();
     render(
