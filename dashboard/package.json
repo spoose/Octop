@@ -17,7 +17,9 @@
     "test:coverage": "vitest run --coverage",
     "preview": "vite preview",
     "preview:prod": "vite preview --mode production",
-    "preview:test": "vite preview --mode test"
+    "preview:test": "vite preview --mode test",
+    "dev:wujie": "BASE_URL= VITE_API_PORT=8088 VITE_DEV_PORT=5174 vite --host 0.0.0.0 --strictPort",
+    "build:wujie": "BASE_URL= npm run build"
   },
   "dependencies": {
     "@aiden0z/pptx-renderer": "^1.2.4",

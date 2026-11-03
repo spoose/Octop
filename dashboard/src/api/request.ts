@@ -1,4 +1,5 @@
 import { getApiUrl } from "./config";
+import { replaceAppRoute } from "../utils/appRuntime";
 import i18n from "../i18n";
 import { markNavigatingAway } from "../utils/reloadOnStaleChunk";
 
@@ -128,8 +129,8 @@ function handleSetupRequired(): void {
     return;
   }
   _redirectingToSetup = true;
-  // Full reload drops any in-flight React state.
-  window.location.replace("/setup");
+  // Embedded navigation must keep the iframe document intact.
+  replaceAppRoute("/setup");
 }
 
 /** Wizard endpoints stay reachable while lockdown is active. */
@@ -326,7 +327,7 @@ function handleUnauthorized(): void {
   if (takenOver) return;
 
   markNavigatingAway();
-  window.location.replace("/login");
+  replaceAppRoute("/login");
 }
 
 /**

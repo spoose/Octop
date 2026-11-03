@@ -1,3 +1,4 @@
+import { getWsUrl } from "../../../api/config";
 /**
  * Terminal session manager — process-scoped singleton.
  *
@@ -103,10 +104,7 @@ function generateId(): string {
 
 function buildWsUrl(agentId: string, sessionId: string): string {
   const token = getAuthToken();
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  const base = `${protocol}://${
-    window.location.host
-  }/api/agents/${encodeURIComponent(agentId)}/terminal/ws`;
+  const base = getWsUrl(`/agents/${encodeURIComponent(agentId)}/terminal/ws`);
   const params = new URLSearchParams();
   if (token) params.set("token", token);
   // Same id re-attaches to the backend shell.

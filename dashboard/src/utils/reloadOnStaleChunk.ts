@@ -1,3 +1,5 @@
+import { isEmbeddedApp } from "./appRuntime";
+
 /**
  * One-shot soft reload when a Vite/webpack chunk fails to load after deploy.
  * sessionStorage guards against infinite reload loops.
@@ -47,6 +49,7 @@ export function isChunkLoadError(error: unknown): boolean {
 
 /** Drop SW + Cache Storage so the next load is not served a stale shell. */
 export async function bustServiceWorkerAndReload(): Promise<void> {
+  if (isEmbeddedApp()) return;
   try {
     if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
@@ -64,7 +67,7 @@ export async function bustServiceWorkerAndReload(): Promise<void> {
 
 /** @returns true when a reload was triggered (caller should stop further handling). */
 export function tryReloadOnStaleChunk(error: unknown): boolean {
-  if (typeof window === "undefined") return false;
+  if (typeof window === "undefined" || isEmbeddedApp()) return false;
   if (navigatingAway) return false;
   if (reloadScheduled) return true;
   if (!isChunkLoadError(error)) return false;

@@ -1,3 +1,5 @@
+import { isEmbeddedApp } from "./utils/appRuntime";
+
 /**
  * Service Worker registration and lifecycle management.
  *
@@ -33,6 +35,7 @@ async function unregisterAllServiceWorkers(): Promise<void> {
  * Only called from explicit UI actions (PwaUpdatePrompt).
  */
 export async function applyUpdate(): Promise<void> {
+  if (isEmbeddedApp()) return;
   if (applyingUpdate) return;
   applyingUpdate = true;
   const waiting = pendingRegistration?.waiting;
@@ -120,7 +123,7 @@ export async function registerProductionSW(): Promise<void> {
 }
 
 export async function registerSW(): Promise<void> {
-  if (!("serviceWorker" in navigator)) return;
+  if (isEmbeddedApp() || !("serviceWorker" in navigator)) return;
 
   if (import.meta.env.DEV) {
     try {

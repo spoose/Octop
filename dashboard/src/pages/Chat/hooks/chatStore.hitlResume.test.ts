@@ -12,7 +12,8 @@ import {
   withdrawCommittedSteer,
 } from "./chatStore";
 
-vi.mock("../../../api/config", () => ({
+vi.mock("../../../api/config", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../../api/config")>()),
   getApiUrl: (path: string) => `/api${path}`,
 }));
 

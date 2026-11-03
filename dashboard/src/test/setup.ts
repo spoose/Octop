@@ -12,7 +12,7 @@
  */
 
 import "@testing-library/jest-dom/vitest";
-import { afterEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 
 // Auto-mock react-i18next so components' ``t(key, fallback)`` calls
@@ -52,6 +52,11 @@ vi.mock("react-i18next", async (importOriginal) => {
     }),
     Trans: ({ children }: { children?: React.ReactNode }) => children,
   };
+});
+
+// Match the default value injected by Vite in the ordinary entry.
+beforeEach(() => {
+  vi.stubGlobal("BASE_URL", "");
 });
 
 afterEach(() => {

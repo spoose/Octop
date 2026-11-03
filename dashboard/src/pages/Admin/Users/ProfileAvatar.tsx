@@ -26,6 +26,13 @@ import staffPortrait from "../../../assets/avatars/staff.png";
 import studentPortrait from "../../../assets/avatars/student.png";
 import supportPortrait from "../../../assets/avatars/support.png";
 import teacherPortrait from "../../../assets/avatars/teacher.png";
+import samplePortrait1 from "../../../assets/avatars/thumbs-1793347196559.webp";
+import samplePortrait2 from "../../../assets/avatars/thumbs-1793347231415.webp";
+import samplePortrait3 from "../../../assets/avatars/thumbs-1793347237300.webp";
+import samplePortrait4 from "../../../assets/avatars/thumbs-1793347243534.webp";
+import samplePortrait5 from "../../../assets/avatars/thumbs-1793347251460.webp";
+import samplePortrait6 from "../../../assets/avatars/thumbs-1793347256224.webp";
+import samplePortrait7 from "../../../assets/avatars/thumbs-1793347260539.webp";
 import { useAuthImageSrc } from "../../../hooks/useAuthImageSrc";
 import { validateAvatarFile } from "../../Experts/components/ExpertAvatarPicker";
 import styles from "./index.module.less";
@@ -120,6 +127,55 @@ const USER_PRESETS: AvatarPreset[] = [
     bg: "",
     fg: "",
     src: bossPortrait,
+  },
+  {
+    id: "sample-1793347196559",
+    labelKey: "adminUsers.avatarSample1",
+    bg: "",
+    fg: "",
+    src: samplePortrait1,
+  },
+  {
+    id: "sample-1793347231415",
+    labelKey: "adminUsers.avatarSample2",
+    bg: "",
+    fg: "",
+    src: samplePortrait2,
+  },
+  {
+    id: "sample-1793347237300",
+    labelKey: "adminUsers.avatarSample3",
+    bg: "",
+    fg: "",
+    src: samplePortrait3,
+  },
+  {
+    id: "sample-1793347243534",
+    labelKey: "adminUsers.avatarSample4",
+    bg: "",
+    fg: "",
+    src: samplePortrait4,
+  },
+  {
+    id: "sample-1793347251460",
+    labelKey: "adminUsers.avatarSample5",
+    bg: "",
+    fg: "",
+    src: samplePortrait5,
+  },
+  {
+    id: "sample-1793347256224",
+    labelKey: "adminUsers.avatarSample6",
+    bg: "",
+    fg: "",
+    src: samplePortrait6,
+  },
+  {
+    id: "sample-1793347260539",
+    labelKey: "adminUsers.avatarSample7",
+    bg: "",
+    fg: "",
+    src: samplePortrait7,
   },
 ];
 

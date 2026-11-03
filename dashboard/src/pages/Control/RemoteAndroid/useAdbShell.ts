@@ -1,3 +1,4 @@
+import { getWsUrl } from "../../../api/config";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthToken } from "../../../api/request";
 
@@ -10,10 +11,7 @@ function buildWsUrl(serial: string, cols: number, rows: number): string {
   params.set("serial", serial);
   params.set("cols", String(cols));
   params.set("rows", String(rows));
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  return `${protocol}://${
-    window.location.host
-  }/api/mobile/adb/shell/ws?${params.toString()}`;
+  return `${getWsUrl("/mobile/adb/shell/ws")}?${params.toString()}`;
 }
 
 export function useAdbShell() {

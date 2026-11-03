@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, type ReactNode } from "react";
+import { getAppLocation, replaceAppRoute } from "../../utils/appRuntime";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Input, Button, Checkbox } from "antd";
 import { message } from "@/utils/antdMessage";
@@ -171,7 +172,7 @@ export default function LoginPage() {
       if (event.data.access_token) {
         setAuthToken(event.data.access_token, event.data.remember ?? true);
       }
-      window.location.replace(event.data.redirect || "/chat");
+      replaceAppRoute(event.data.redirect || "/chat");
     };
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
@@ -192,7 +193,7 @@ export default function LoginPage() {
     try {
       const { authorization_url } = await authApi.startOauth(kind, "/chat");
       if (kind === "oidc") {
-        window.location.href = authorization_url;
+        getAppLocation().href = authorization_url;
         return;
       }
       if (popup && !popup.closed) {

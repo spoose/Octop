@@ -1,4 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { isEmbeddedApp } from "../../utils/appRuntime";
 import {
   subscribePwaPrompt,
   getPwaInstallSnapshot,
@@ -468,6 +469,7 @@ export default function PwaDebugPage() {
   };
 
   const handleResetPwa = async () => {
+    if (isEmbeddedApp()) return;
     if (
       !confirm(
         "将注销当前 Service Worker 并清空所有 PWA 状态。确定要重置吗？\n操作完成后会自动刷新页面。",
@@ -641,6 +643,7 @@ export default function PwaDebugPage() {
           等待安装事件（8s）
         </button>
         <button
+          disabled={isEmbeddedApp()}
           onClick={() => void handleResetPwa()}
           style={{
             padding: "8px 16px",

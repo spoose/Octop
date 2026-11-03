@@ -1,4 +1,5 @@
 import { useEffect, useSyncExternalStore, useState } from "react";
+import { isEmbeddedApp } from "../../utils/appRuntime";
 import { createPortal } from "react-dom";
 import { Tooltip } from "antd";
 import { useTranslation } from "react-i18next";
@@ -187,7 +188,13 @@ export default function PwaInstallPrompt({
     () => !!localStorage.getItem(DISMISSED_KEY),
   );
 
-  if (isStandalone() || isDesktopShell() || installState.installed) return null;
+  if (
+    isEmbeddedApp() ||
+    isStandalone() ||
+    isDesktopShell() ||
+    installState.installed
+  )
+    return null;
 
   // Chat right float: always expose the install entry until the app is
   // installed (ignore Header dismiss + beforeinstallprompt lag). Dev has no
@@ -284,6 +291,7 @@ export function PwaAutoPrompt() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
+    if (isEmbeddedApp()) return;
     if (!isIosDevice() || isStandalone() || isDesktopShell()) return;
     if (
       localStorage.getItem(DISMISSED_KEY) ||

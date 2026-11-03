@@ -38,6 +38,9 @@
     -->
     <script id="octop-boot-theme">
       (function () {
+        if (window.__POWERED_BY_WUJIE__) {
+          document.documentElement.setAttribute("data-wujie-embedded", "");
+        }
         var KEY = "theme";
         var mode = "light";
         function systemDark() {
@@ -92,6 +95,13 @@
       #root {
         min-height: 100%;
         min-height: 100lvh;
+      }
+      /* Embedded pages fill the workspace instead of the browser viewport. */
+      html[data-wujie-embedded],
+      html[data-wujie-embedded] body,
+      html[data-wujie-embedded] #root {
+        height: 100%;
+        min-height: 0;
       }
       #octop-boot {
         /* fixed + inset: always viewport-centered before app CSS sets #root height */
@@ -206,6 +216,9 @@
             writable: true,
           });
         }
+
+        // The embedded app must not clear its host's workers or caches.
+        if (window.__POWERED_BY_WUJIE__) return;
 
         var KEY = "octop:chunk-reload";
         // Firefox fires error on <link rel="modulepreload"> for /assets/*.js

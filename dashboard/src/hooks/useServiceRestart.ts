@@ -1,3 +1,4 @@
+import { reloadApp } from "../utils/appRuntime";
 import { useCallback, useEffect, useRef, useState } from "react";
 import i18n from "../i18n";
 import { probeHealth } from "../api/probeHealth";
@@ -138,7 +139,7 @@ export function useServiceRestart() {
           setRestartPhase("success");
           restartInFlightRef.current = false;
           restartTimerRef.current = setTimeout(
-            () => window.location.reload(),
+            () => reloadApp(),
             RELOAD_DELAY_MS,
           );
           return;

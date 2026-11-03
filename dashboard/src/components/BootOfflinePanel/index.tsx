@@ -1,3 +1,4 @@
+import { reloadApp } from "../../utils/appRuntime";
 import { Button, Result } from "antd";
 import { useTranslation } from "react-i18next";
 import { OctopEmptyMascot } from "../EmptyState";
@@ -20,7 +21,7 @@ export default function BootOfflinePanel({ onRetry }: BootOfflinePanelProps) {
       onRetry();
       return;
     }
-    window.location.reload();
+    reloadApp();
   };
 
   return (
