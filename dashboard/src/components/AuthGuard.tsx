@@ -5,6 +5,7 @@ import { clearAuthToken, getAuthToken } from "../api/request";
 import { authApi, type OctopUser } from "../api/modules/auth";
 import { applyUserLocale } from "../utils/locale";
 import { isNetworkFetchError } from "../utils/networkError";
+import { useWorkbenchAuthStatus } from "../utils/workbenchBridge";
 import { CurrentUserProvider } from "../hooks/useCurrentUser";
 import BootOfflinePanel from "./BootOfflinePanel";
 
@@ -44,6 +45,9 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const [user, setUser] = useState<OctopUser | null>(null);
   const [offline, setOffline] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
+  useWorkbenchAuthStatus(
+    offline ? "offline" : authed ? "authenticated" : "checking",
+  );
 
   useEffect(() => {
     let cancelled = false;

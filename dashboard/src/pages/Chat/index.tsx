@@ -28,6 +28,7 @@ import { useChatSidebarState } from "./hooks/useChatSidebarState";
 import { useChatHistoryRail } from "./hooks/useChatHistoryRail";
 import { useChatDockPanel } from "./hooks/useChatDockPanel";
 import { useChatSend, type ChatSendOverrides } from "./hooks/useChatSend";
+import { useWorkbenchPrompt } from "./hooks/useWorkbenchPrompt";
 import {
   useChatMessageQueue,
   type ChatQueueFlushContext,
@@ -707,7 +708,7 @@ function ChatPageInner() {
     [chatSkills, chatConnectors, chatKnowledgeBases, chatAgentOptions],
   );
 
-  const { handleSend } = useChatSend({
+  const { handleSend, sendNewThread } = useChatSend({
     resolvedAgentId,
     activeThreadId,
     sessions,
@@ -797,6 +798,17 @@ function ChatPageInner() {
       t,
     ],
   );
+
+  // 工作台提问使用独立会话，不进入当前对话的审批或录制流程。
+  useWorkbenchPrompt({
+    authenticated: Boolean(user),
+    ready: agentChatReady,
+    send: async (text) => {
+      if (await sendNewThread(text)) return;
+      prefillInputRef.current = text;
+      chatInputRef.current?.setPrefillText(text);
+    },
+  });
 
   const flushQueuedItem = useCallback(
     (item: QueuedChatItem, ctx: ChatQueueFlushContext): boolean => {

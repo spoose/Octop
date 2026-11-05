@@ -9,6 +9,7 @@ import {
 import type { ReactNode } from "react";
 import { setActiveAgentId } from "../api/request";
 import { agentApi as legacyAgentApi } from "../api/modules/agent";
+import { isEmbeddedApp } from "../utils/appRuntime";
 import {
   retainDisconnectedBridgeAgents,
   toBridgeShadowAgentId,
@@ -452,7 +453,10 @@ export function AgentProvider({ children }: { children: ReactNode }) {
         if (haveStored) {
           persistAndApply(stored);
         } else if (merged.length > 0) {
-          persistAndApply(merged[0].agent_id);
+          const knowledgeAgent = isEmbeddedApp()
+            ? merged.find((agent) => agent.agent_id === "know-bot")
+            : undefined;
+          persistAndApply((knowledgeAgent ?? merged[0]).agent_id);
         } else {
           persistAndApply(null);
         }

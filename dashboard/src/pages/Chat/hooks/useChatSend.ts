@@ -99,13 +99,13 @@ export function useChatSend({
 }: UseChatSendParams) {
   const navigate = useNavigate();
 
-  /** @returns false when the send was rejected before starting a turn. */
-  const handleSend = useCallback(
+  const send = useCallback(
     (
       text: string,
       attachments?: ChatAttachment[],
       overrides?: ChatSendOverrides,
-    ): boolean => {
+      startNewThread = false,
+    ): boolean | Promise<boolean> => {
       const agent = overrides?.agentId ?? resolvedAgentId;
       if (!agent) {
         message.warning(t("chat.pickAgent", "请先选择一个 Agent"));
@@ -157,8 +157,7 @@ export function useChatSend({
           ? overrides.modelRef
           : resolveTurnModelRef(modelSelection, defaultModel);
 
-      const runSend = (tid: string, hadMessages: boolean) => {
-        maybeRenameNewThread(tid, hadMessages);
+      const runSend = (tid: string) => {
         sendMessage(
           trimmed,
           "",
@@ -177,6 +176,22 @@ export function useChatSend({
         );
       };
 
+      if (startNewThread) {
+        return createSession().resolvedId.then((tid) => {
+          if (!tid) {
+            message.error(
+              t("chat.createSessionFailed", "创建会话失败，请重试"),
+            );
+            return false;
+          }
+          renameSession(tid, deriveThreadTitle(trimmed));
+          if (policy) syncSessionHitlPolicy(tid, policy);
+          runSend(tid);
+          navigate(`/chat/${agent}/${tid}`);
+          return true;
+        });
+      }
+
       const targetThreadId =
         overrides?.threadId !== undefined ? overrides.threadId : activeThreadId;
 
@@ -189,7 +204,8 @@ export function useChatSend({
           targetThreadId === activeThreadId
             ? messagesLength > 0
             : chatStore.getSnapshot(targetThreadId).messages.length > 0;
-        runSend(targetThreadId, hadMessages);
+        maybeRenameNewThread(targetThreadId, hadMessages);
+        runSend(targetThreadId);
         return true;
       }
 
@@ -263,6 +279,19 @@ export function useChatSend({
     ],
   );
 
+  /** @returns false when the send was rejected before starting a turn. */
+  const handleSend = useCallback(
+    (
+      text: string,
+      attachments?: ChatAttachment[],
+      overrides?: ChatSendOverrides,
+    ) => send(text, attachments, overrides) !== false,
+    [send],
+  );
+
+  const sendNewThread = (text: string) =>
+    send(text, undefined, undefined, true);
+
   useEffect(() => {
     const consumePending = () => {
       const raw = localStorage.getItem("octop.pendingChatMessage");
@@ -330,5 +359,5 @@ export function useChatSend({
       window.removeEventListener("octop:pending-chat-message", handler);
   }, [handleSend, activeThreadId, onAutoRecordingStarted, t]);
 
-  return { handleSend };
+  return { handleSend, sendNewThread };
 }

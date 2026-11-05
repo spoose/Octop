@@ -5,6 +5,8 @@ declare global {
       location: Location;
       // The workspace reloads this instance through its existing retry action.
       props: { reload: () => void };
+      // Event channel shared with the workbench host (see workbenchBridge).
+      bus?: unknown;
     };
   }
 }
